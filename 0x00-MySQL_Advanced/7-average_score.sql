@@ -15,11 +15,11 @@ BEGIN
           SELECT SUM(score) FROM corrections WHERE user_id = user_id
         );
 	UPDATE users
-            SET average_score = IF(user_count = 0, 0, scores / user_count)
+            SET average_score = scores / user_count
 	    WHERE id = user_id;
     ELSE
 	SET scores = (
-	    SELECT score FROM corrections WHERE user_id = user_id
+	    SELECT AVG(score) FROM corrections WHERE user_id = user_id
 	);
 	 UPDATE users
 	     SET average_score = scores
