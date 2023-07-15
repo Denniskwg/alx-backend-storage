@@ -3,7 +3,7 @@ DROP PROCEDURE IF EXISTS ComputeAverageScoreForUser;
 DELIMITER $$
 CREATE PROCEDURE ComputeAverageScoreForUser (user_id INT)
 BEGIN
-    DECLARE user_count INT;
+    DECLARE user_count INT DEFAULT 0;
     DECLARE scores INT DEFAULT 0;
 
     SET user_count = (
@@ -15,7 +15,7 @@ BEGIN
     );
 
     UPDATE users
-        SET average_score = IF(user_count = 0, 0, total_score / user_count)
+        SET average_score = IF(user_count = 0, 0, scores / user_count)
 	WHERE id = user_id;
 END $$
 DELIMITER ;
