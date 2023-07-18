@@ -1,0 +1,2 @@
+// lists all documents in the collection school
+printjson(db.school.find().toArray())
