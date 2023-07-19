@@ -4,6 +4,38 @@
 import redis
 import uuid
 from typing import Any, Callable, Union
+from functools import wraps
+
+
+def count_calls(method: Callable) -> Callable:
+    """counts the number of tomes fn is called"""
+    @wraps(method)
+    def increment(self, *args, **kwargs) -> Any:
+        """increments the value in key method.__qualname__"""
+        if isinstance(self._redis, redis.Redis):
+            self._redis.incr(method.__qualname__)
+        method(self, *args, **kwargs)
+    return increment
+
+
+def call_history(method: Callable) -> Callable:
+    """store the history of inputs and outputs for a particular
+    function
+    """
+    @wraps(method)
+    def history(self, *args, **kwargs) -> Any:
+        """Returns the method's output after storing its inputs
+        and output
+        """
+        inputs = "{}:inputs".format(method.__qualname__)
+        outputs = "{}:outputs".format(method.__qualname__)
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(inputs, str(args))
+        output = method(self, *args, **kwargs)
+        if isinstance(self._redis, redis.Redis):
+            self._redis.rpush(outputs, output)
+        return output
+    return history
 
 
 class Cache:
@@ -14,6 +46,8 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb(True)
 
+    @count_calls
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Stores a value in a Redis data storage and returns the key
         """
